@@ -7,6 +7,7 @@ const startDateInput = document.getElementById('start-date')
 const endDateInput = document.getElementById('end-date')
 const startPageInput = document.getElementById('start-page')
 const endPageInput = document.getElementById('end-page')
+const lapNumberInput = document.getElementById('lap-number')
 /**
  * 指定した要素の子どもを全て削除する
  * @param {HTMLElement} element HTMLの要素
@@ -20,10 +21,10 @@ function removeAllChildren(element) {
 // HTMLの出力ボタンを押すと動作する
 outputButton.onclick = () => {
     //if (userName.length === 0) {
-        // TODO 名前が空の時は処理を終了する
+    // TODO 名前が空の時は処理を終了する
     //    return;
     //}
-    
+
     // 出力結果表示エリアの作成
     removeAllChildren(resultDivided);
     const headerResult = document.createElement('h3');
@@ -31,22 +32,22 @@ outputButton.onclick = () => {
     resultDivided.appendChild(headerResult);
 
     const result = studyPageDate(startDateInput.value, endDateInput.value, startPageInput.value, endPageInput.value)
+    const resultLap = lapIntervalDate(result.date, lapNumberInput.value)
     const resulttext = document.createElement('p')
     resulttext.innerText = `開始日付から終了日付まで${result.date}日間あります。\n開始ページから終了ページまで${result.page}ページあります。\n1日あたり${result.ppd}ページ、または1週間あたり${result.ppw}ページ進めると終わります。`
     resultDivided.appendChild(resulttext);
 
     // テーブルエリアの作成
     removeAllChildren(tableDivided);
-    const haderTable = document.createElement('h3');
-    haderTable.innerText = 'スケジュール表'
-    tableDivided.appendChild(haderTable);
-    const table = createTable(10, 8);               // 第１引数で行数、第２引数で列数
-    table.border = "2";                             // ボーダーの幅
-    tableDivided.appendChild(table);
+    tableInsertRow(tableDivided, ['周回数', '開始日付', '終了日付']);
+    let tmp = createSchedule(startDateInput.value, resultLap)
+    for (let i = 0; i < tmp.length; i++) {
+        tableInsertRow(tableDivided, tmp[i]);
+    }
 };
 
 /**
- * 残りの日付、ページ数、1日あたりのページ進行を求める
+ * 残りの日付、ページ数、1日または1週間あたりのページ進行を求める
  * @param {String} sd   開始日付
  * @param {String} ed   終了日付
  * @param {Number} sp   開始ページ
@@ -70,35 +71,40 @@ function studyPageDate(sd, ed, sp, ep) {
     let result = {
         date: remainingDate,    // 残り時間（日）
         page: remainingPage,    // 残りページ数
-        ppd: pagePerDate,        // 1日あたりの進行ページ数
-        ppw: pagePerWeek
+        ppd: pagePerDate,       // 1日あたりの進行ページ数
+        ppw: pagePerWeek        // 1週間あたりの進行ページ数
     }
     return result;
 }
-// 表の作成
-function createTable(row, col) {
-    let table = document.createElement('table');
-    // tr(行の作成)
-    for (let i = 0; i <= row; i++) {
-        let tableRow = document.createElement('tr');
-        // td(列の作成)
-        for (let j = 0; j < col; j++) {
-            if (i === 0) {
-                let tableHead = document.createElement('th');
-                tableHead.textContent = 'Title'
-                tableRow.appendChild(tableHead);
-            } else {
-            let tableCol = document.createElement('td');
-            if (j === 0) {
-                tableCol.textContent = 'Unit' + i;
-                tableRow.appendChild(tableCol);
-            } else {
-                tableCol.textContent = 'Test' + i + '.' + j;
-                tableRow.appendChild(tableCol);
-            }
-        }
-        }
-        table.appendChild(tableRow);
+
+function lapIntervalDate(rd, ln) {
+    let lapinterval = [];
+    let count = 0;
+    for (let i = 0; i <= ln; i++) {
+        lapinterval.push(Math.round(count));
+        count += rd / ln;
     }
-    return table;
+    return lapinterval;
+}
+
+function tableInsertRow(table, array) {
+    let row = table.insertRow(-1);
+    for (let i = 0; i < array.length; i++) {
+        let cell = row.insertCell(-1);
+        cell.innerHTML = array[i];
+    }
+}
+
+function createSchedule(startDate, intervalArray) {
+    let resultArray = [];
+    let date = moment(startDate)
+
+    for (let i = 0; i < intervalArray.length - 1; i++) {
+        let rowsArray = [];
+        rowsArray.push((i + 1).toString());
+        rowsArray.push(date.clone().add('days', intervalArray[i]).format('MM/DD'));
+        rowsArray.push(date.clone().add('days', intervalArray[i + 1] - 1).format('MM/DD'));
+        resultArray.push(rowsArray);
+    }
+    return resultArray;
 }
