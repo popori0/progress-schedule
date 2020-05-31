@@ -18,6 +18,58 @@ function removeAllChildren(element) {
         element.removeChild(element.firstChild);
     }
 }
+
+var textbook = { "テキスト選択": "tmp",
+                "中1英語": {"UNIT1": [1, 10], "UNIT2": [11, 22], "UNIT3": [23, 35]}, 
+                "中2英語": {"UNIT1": [1, 8], "UNIT2": [9, 15], "UNIT3": [16, 22]}, 
+                "中3英語": {"UNIT1": [1, 4], "UNIT2": [5, 8], "UNIT3": [9, 13], "UNIT4": [14, 20]}};
+
+window.onload=function(){
+    for (var key in textbook) {
+    var op = document.createElement("option");
+    op.value = key;
+    op.text = key;
+    document.getElementById("selPref").appendChild(op);
+  }
+}
+
+/*
+function mapOut(map, eleId) {
+    removeAllChildren(eleId);
+    for (let key in map) {
+        let op = document.createElement("option");
+        op.value = map[key];
+        op.text = key;
+        eleID.appendChild(op);
+    }
+}
+*/
+function selPref(obj){
+    var selObj = document.getElementById('selCity');
+    var selObj2 = document.getElementById('selCity2');
+    removeAllChildren(selObj);
+    removeAllChildren(selObj2);
+    for (let key in textbook[obj.value]) {
+        let op = document.createElement("option");
+        op.value = textbook[obj.value][key];
+        op.text = key;
+        selObj.appendChild(op);
+    }
+    for (let key in textbook[obj.value]) {
+        let op = document.createElement("option");
+        op.value = textbook[obj.value][key];
+        op.text = key;
+        selObj2.appendChild(op);
+    }
+}
+function selCity(obj) {
+    startPageInput.value = parseInt(obj.value.split(',')[0]);
+}
+
+function selCity2(obj) {
+    endPageInput.value = parseInt(obj.value.split(',')[1]);
+}
+
 // HTMLの出力ボタンを押すと動作する
 outputButton.onclick = () => {
     //if (userName.length === 0) {
@@ -87,14 +139,24 @@ function lapIntervalDate(rd, ln) {
     return lapinterval;
 }
 
+/**
+ * tableと配列を渡し、tableの末尾の行に配列の要素を入力する
+ * @param {Object} table    // HTMLのtableタグ  
+ * @param {Array} array     // tableタグで囲まれるtrタグで出力する文字列が入った配列
+ */
 function tableInsertRow(table, array) {
-    let row = table.insertRow(-1);
-    for (let i = 0; i < array.length; i++) {
-        let cell = row.insertCell(-1);
-        cell.innerHTML = array[i];
+    let row = table.insertRow(-1);              // tableの末尾に行を追加
+    for (let i = 0; i < array.length; i++) {    // 配列の要素数だけループ
+        let cell = row.insertCell(-1);          // 追加した行の末尾にセルを追加
+        cell.innerHTML = array[i];              // 追加したセルに配列の文字列を入力
     }
 }
 
+/**
+ * 
+ * @param {String} startDate            // 開始日付
+ * @param {Array} intervalArray         // 周回の間隔日数
+ */
 function createSchedule(startDate, intervalArray) {
     let resultArray = [];
     let date = moment(startDate)
